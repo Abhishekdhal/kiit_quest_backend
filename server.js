@@ -10,15 +10,20 @@ const app = express();
 
 // Middleware
 app.use(express.json()); 
-app.use(cors());         
+app.use(cors()); 
 
 // Define Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/pyqs', require('./routes/pyqRoutes')); // PYQ Routes added
+app.use('/api/pyqs', require('./routes/pyqRoutes'));
+
+// -----------------------------------------------------------------
+// FIX: REGISTER THE USER PROFILE ROUTES TO FIX THE 404
+app.use('/api/user', require('./routes/userRoutes')); 
+// -----------------------------------------------------------------
 
 // Basic health check route
 app.get('/', (req, res) => {
-    res.send('KIIT Quest API is Running...');
+  res.send('KIIT Quest API is Running...');
 });
 
 const PORT = process.env.PORT || 5000;
