@@ -13,8 +13,8 @@ app.use(express.json());
 app.use(cors());         
 
 // Define Routes
-app.use('/api/v1/auth', require('./routes/authRoutes'));
-app.use('/api/v1/pyqs', require('./routes/pyqRoutes')); // PYQ Routes added
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/pyqs', require('./routes/pyqRoutes')); // PYQ Routes added
 
 // Basic health check route
 app.get('/', (req, res) => {

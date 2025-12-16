@@ -11,16 +11,22 @@ const registerUser = asyncHandler(async (req, res) => {
     if (await User.findOne({ email })) {
         res.status(400); throw new Error('User already exists');
     }
-    const user = await User.create({ name, email, password, school, branch, semester, phone });
-
-    if (user) {
-        res.status(201).json({
-            _id: user._id, name: user.name, email: user.email, 
-            school: user.school, branch: user.branch, semester: user.semester,
-            phone: user.phone,
-            token: generateToken(user._id),
-        });
-    } else { res.status(400); throw new Error('Invalid user data'); }
+    try {
+        const user = await User.create({ name, email, password, school, branch, semester, phone });
+        if (user) {
+            res.status(201).json({
+                _id: user._id, name: user.name, email: user.email,
+                school: user.school, branch: user.branch, semester: user.semester,
+                phone: user.phone,
+                token: generateToken(user._id),
+            });
+        } else {
+            res.status(400);
+            throw new Error('Invalid user data');
+        }
+    } catch (error) {
+        res.status(400).json({ message: 'Invalid user data', error: error.message });
+    }
 });
 
 const loginUser = asyncHandler(async (req, res) => {
