@@ -8,6 +8,12 @@ const generateToken = (id) => {
 
 const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password, school, branch, semester, phone } = req.body;
+
+    if (!name || !email || !password) {
+        res.status(400);
+        throw new Error('Please add all fields');
+    }
+
     if (await User.findOne({ email })) {
         res.status(400); throw new Error('User already exists');
     }
