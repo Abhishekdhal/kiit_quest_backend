@@ -13,10 +13,10 @@ const getUserProfile = asyncHandler(async (req, res) => {
             _id: user._id, 
             name: user.name, 
             email: user.email, 
-            school: user.school, 
-            branch: user.branch, 
-            semester: user.semester,
-            phone: user.phone,
+            school: user.school || '', 
+            branch: user.branch || '', 
+            semester: user.semester || '',
+            phone: user.phone || '',
             // Add other profile fields here
         });
     } else {
