@@ -14,7 +14,7 @@ app.use(cors());
 
 // Define Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/pyqs', require('./routes/pyqRoutes'));
+app.use('/api/pyq', require('./routes/pyqRoutes'));
 
 // -----------------------------------------------------------------
 // FIX: REGISTER THE USER PROFILE ROUTES TO FIX THE 404
