@@ -12,18 +12,21 @@ const app = express();
 app.use(express.json()); 
 app.use(cors()); 
 
-// Define Routes
+// --- REGISTERED ROUTES ---
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/pyq', require('./routes/pyqRoutes'));
 app.use('/api/user', require('./routes/userRoutes')); 
-app.use('/api/pdf', require('./routes/pdfProxy')); // ← FIXED: Changed from pdfRoutes to pdfProxy
+app.use('/api/pdf', require('./routes/pdfProxy'));
+
+// ✅ ADDED: Community/Post Routes
+app.use('/api/posts', require('./routes/postRoutes')); 
 
 // Basic health check route
 app.get('/', (req, res) => {
   res.send('KIIT Quest API is Running...');
 });
 
-// Test route to verify PDF proxy is registered
+// Test route to verify all routes (Updated)
 app.get('/api/test-routes', (req, res) => {
   res.json({
     message: 'Available routes',
@@ -31,7 +34,8 @@ app.get('/api/test-routes', (req, res) => {
       '/api/auth',
       '/api/pyq',
       '/api/user',
-      '/api/pdf ← PDF Proxy Route'
+      '/api/pdf',
+      '/api/posts' // Added here
     ]
   });
 });
@@ -55,40 +59,9 @@ app.listen(PORT, () => {
   console.log('   • /api/auth - Authentication');
   console.log('   • /api/pyq - Previous Year Questions');
   console.log('   • /api/user - User Profile');
-  console.log('   • /api/pdf - PDF Proxy ← NEW');
+  console.log('   • /api/pdf - PDF Proxy');
+  console.log('   • /api/posts - Community Posts ✅'); // Added here
 });
 
 // Export for Vercel
 module.exports = app;
-
-// const express = require('express');
-// const connectDB = require('./config/db');
-// const cors = require('cors');
-// require('dotenv').config();
-
-// // Connect to Database
-// connectDB();
-
-// const app = express();
-
-// // Middleware
-// app.use(express.json()); 
-// app.use(cors()); 
-
-// // Define Routes
-// app.use('/api/auth', require('./routes/authRoutes'));
-// app.use('/api/pyq', require('./routes/pyqRoutes'));
-
-// // -----------------------------------------------------------------// FIX: REGISTER THE USER PROFILE ROUTES TO FIX THE 404
-// app.use('/api/user', require('./routes/userRoutes')); 
-// app.use('/api/pdf', require('./routes/pdfProxy'));
-
-
-// // Basic health check route
-// app.get('/', (req, res) => {
-//   res.send('KIIT Quest API is Running...');
-// });
-
-// const PORT = process.env.PORT || 5000;
-
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
