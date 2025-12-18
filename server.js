@@ -16,10 +16,10 @@ app.use(cors());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/pyq', require('./routes/pyqRoutes'));
 
-// -----------------------------------------------------------------
-// FIX: REGISTER THE USER PROFILE ROUTES TO FIX THE 404
+// -----------------------------------------------------------------// FIX: REGISTER THE USER PROFILE ROUTES TO FIX THE 404
 app.use('/api/user', require('./routes/userRoutes')); 
-// -----------------------------------------------------------------
+app.use('/api/pdf', require('./routes/pdfRoutes'));
+
 
 // Basic health check route
 app.get('/', (req, res) => {
