@@ -16,7 +16,7 @@ app.use(cors());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/pyq', require('./routes/pyqRoutes'));
 app.use('/api/user', require('./routes/userRoutes')); 
-app.use('/api/pdf', require('./routes/pdfProxy'));
+app.use('/api/pdf', require('./routes/pdfRoutes'));
 
 // ✅ ADDED: Community/Post Routes
 app.use('/api/posts', require('./routes/postRoutes')); 
@@ -59,7 +59,7 @@ app.listen(PORT, () => {
   console.log('   • /api/auth - Authentication');
   console.log('   • /api/pyq - Previous Year Questions');
   console.log('   • /api/user - User Profile');
-  console.log('   • /api/pdf - PDF Proxy');
+  console.log('   • /api/pdf - PDFs');
   console.log('   • /api/posts - Community Posts ✅'); // Added here
 });
 
