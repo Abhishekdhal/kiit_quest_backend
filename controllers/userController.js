@@ -27,7 +27,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/user/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id || req.user.id);
 
     if (user) {
         // Update fields if they are provided in the request body, otherwise keep current values
