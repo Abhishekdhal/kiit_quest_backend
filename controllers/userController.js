@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
+const { removeListener } = require('../server');
 
 // @desc    Get user profile
 // @route   GET /api/user/profile
@@ -53,6 +54,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             branch: updatedUser.branch,
             semester: updatedUser.semester,
             phone: updatedUser.phone,
+            role: updatedUser.role,
         });
     } else {
         res.status(404);
