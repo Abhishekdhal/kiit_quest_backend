@@ -1,21 +1,36 @@
 const asyncHandler = require('express-async-handler');
 const PYQ = require('../models/PYQ');
 
+/**
+ * Helper function to escape special regex characters.
+ * This is crucial for matching branch names like "(CSE) Computer Science & Engineering"
+ * because characters like ( ) and & have special meanings in Regex.
+ */
+const escapeRegex = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 // @desc    Get subjects based on school, branch, and semester
 // @route   GET /api/pyq/subjects
+// @access  Private
 const getSubjects = asyncHandler(async (req, res) => {
     const { school, branch, semester } = req.query; 
 
-    // console.log helps verify exactly what Flutter is sending in Vercel logs
-    console.log(`Fetching subjects for: [${school}], [${branch}], Sem: [${semester}]`);
+    // Log the exact values hitting the server for Vercel debugging
+    console.log(`Fetching subjects for: School: [${school}], Branch: [${branch}], Sem: [${semester}]`);
+
+    if (!school || !branch || !semester) {
+        res.status(400);
+        throw new Error('Please provide school, branch, and semester');
+    }
 
     const subjects = await PYQ.aggregate([
         {
             $match: {
-                // Regex handles case sensitivity and leading/trailing whitespace
-                schoolName: { $regex: new RegExp(`^${school.trim()}$`, 'i') },
-                branchName: { $regex: new RegExp(`^${branch.trim()}$`, 'i') },
-                // Ensure semester is treated as a string for matching
+                // 'i' flag makes matching case-insensitive
+                // escapeRegex ensures (CSE) is treated as literal text
+                schoolName: { $regex: new RegExp(`^${escapeRegex(school.trim())}$`, 'i') },
+                branchName: { $regex: new RegExp(`^${escapeRegex(branch.trim())}$`, 'i') },
                 semester: semester.toString().trim(), 
             },
         },
@@ -34,30 +49,49 @@ const getSubjects = asyncHandler(async (req, res) => {
         },
     ]);
 
+    console.log(`Subjects Found: ${subjects.length}`);
     res.json(subjects);
 });
 
 // @desc    Get available years for a subject
 // @route   GET /api/pyq/years
+// @access  Private
 const getYears = asyncHandler(async (req, res) => {
     const { subjectId } = req.query;
     
+    if (!subjectId) {
+        res.status(400);
+        throw new Error('Subject ID is required');
+    }
+
     // Ensure subjectId is trimmed to match the database entry exactly
     const years = await PYQ.distinct('year', { 
         subjectId: subjectId.toString().trim() 
     });
 
+    console.log(`Years found for Subject [${subjectId}]:`, years);
     res.json(years);
 });
 
 // @desc    Get the actual file URL
 // @route   GET /api/pyq/file-url
+// @access  Private
 const getFileUrl = asyncHandler(async (req, res) => {
     const { subjectId, year } = req.query;
 
     console.log(`Searching for File -> SubjectID: [${subjectId}], Year: [${year}]`);
 
-    // FIX: Look for year as both a string and a number using $or operator
+    if (!subjectId || !year) {
+        res.status(400);
+        throw new Error('Subject ID and Year are required');
+    }
+
+    /**
+     * $or allows matching regardless of whether 'year' is stored as:
+     * 1. A String ("2023")
+     * 2. A Number (2023)
+     * This solves the common "404 File Not Found" error.
+     */
     const pyqDoc = await PYQ.findOne({ 
         subjectId: subjectId.toString().trim(), 
         $or: [
@@ -69,14 +103,17 @@ const getFileUrl = asyncHandler(async (req, res) => {
     if (pyqDoc && pyqDoc.fileUrl) {
         res.json({ fileUrl: pyqDoc.fileUrl });
     } else {
-        // This block executes when the query returns null
         console.error(`DB query FAILED for SubjectID: ${subjectId} and Year: ${year}`);
         res.status(404);
         throw new Error('PYQ file not found for the selected criteria.');
     }
 });
 
-module.exports = { getSubjects, getYears, getFileUrl };
+module.exports = { 
+    getSubjects, 
+    getYears, 
+    getFileUrl 
+};
 
 // const asyncHandler = require('express-async-handler');
 // const PYQ = require('../models/PYQ');
