@@ -7,6 +7,6 @@ const { isAdmin } = require('../middleware/adminAuth');
 
 router.get('/all', protect, getAllPosts); // Everyone views
 router.put('/:id/like', protect, toggleLike); // Everyone likes
-router.post('/posts/create', protect, isAdmin, createPost); // ONLY ADMIN POSTS ✅
+router.post('/create', protect, isAdmin, createPost); // ONLY ADMIN POSTS ✅
 
 module.exports = router;
