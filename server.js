@@ -29,6 +29,7 @@ app.use('/api/pdf', require('./routes/pdfRoutes'));
 
 // ✅ ADDED: Community/Post Routes
 app.use('/api/posts', require('./routes/postRoutes')); 
+app.use('/api/study-material', require('./routes/studyMaterialRoutes'));
 
 // Basic health check route
 app.get('/', (req, res) => {
@@ -70,6 +71,7 @@ app.listen(PORT, () => {
   console.log('   • /api/user - User Profile');
   console.log('   • /api/pdf - PDFs');
   console.log('   • /api/posts - Community Posts ✅'); // Added here
+  console.log('   • /api/study-material - Study Materials ✅');
 });
 
 // Export for Vercel
