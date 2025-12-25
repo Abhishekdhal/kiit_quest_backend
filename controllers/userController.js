@@ -5,7 +5,6 @@ const User = require('../models/User');
 // @route   GET /api/user/profile
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
-    // Standardize ID lookup to match your update logic
     const userId = req.user._id || req.user.id;
     const user = await User.findById(userId).select('-password'); 
     
@@ -18,7 +17,6 @@ const getUserProfile = asyncHandler(async (req, res) => {
             branch: user.branch || '', 
             semester: user.semester || '',
             phone: user.phone || '',
-            // ADDED: Return role so Flutter Admin UI works
             role: user.role || 'student', 
         });
     } else {
@@ -41,7 +39,6 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         user.semester = req.body.semester || user.semester;
         user.phone = req.body.phone || user.phone;
 
-        // Password hashing is handled by the pre-save hook in models/User.js
         if (req.body.password) {
             user.password = req.body.password;
         }
@@ -56,7 +53,6 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             branch: updatedUser.branch,
             semester: updatedUser.semester,
             phone: updatedUser.phone,
-            // ALREADY INCLUDED: This ensures admin status persists after update
             role: updatedUser.role,
         });
     } else {
@@ -65,20 +61,43 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
 });
 
+// --- ADDED THIS FUNCTION ---
+// @desc    Delete user account immediately
+// @route   DELETE /api/user/profile
+// @access  Private
+const deleteUserProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id || req.user.id);
+
+    if (user) {
+        // Immediately delete the user
+        await User.deleteOne({ _id: user._id });
+        
+        // Optional: If you have a separate Quest/Score model, clean it up here:
+        // await Score.deleteMany({ user: user._id });
+
+        res.json({ message: 'User account deleted successfully' });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
 module.exports = { 
     getUserProfile, 
-    updateUserProfile 
+    updateUserProfile,
+    deleteUserProfile // Export it here
 };
 
 // const asyncHandler = require('express-async-handler');
 // const User = require('../models/User');
-// const { removeListener } = require('../server');
 
 // // @desc    Get user profile
 // // @route   GET /api/user/profile
 // // @access  Private
 // const getUserProfile = asyncHandler(async (req, res) => {
-//     const user = await User.findById(req.user.id).select('-password'); 
+//     // Standardize ID lookup to match your update logic
+//     const userId = req.user._id || req.user.id;
+//     const user = await User.findById(userId).select('-password'); 
     
 //     if (user) {
 //         res.json({
@@ -89,6 +108,8 @@ module.exports = {
 //             branch: user.branch || '', 
 //             semester: user.semester || '',
 //             phone: user.phone || '',
+//             // ADDED: Return role so Flutter Admin UI works
+//             role: user.role || 'student', 
 //         });
 //     } else {
 //         res.status(404);
@@ -103,7 +124,6 @@ module.exports = {
 //     const user = await User.findById(req.user._id || req.user.id);
 
 //     if (user) {
-//         // Update fields if they are provided in the request body, otherwise keep current values
 //         user.name = req.body.name || user.name;
 //         user.email = req.body.email || user.email;
 //         user.school = req.body.school || user.school;
@@ -111,7 +131,7 @@ module.exports = {
 //         user.semester = req.body.semester || user.semester;
 //         user.phone = req.body.phone || user.phone;
 
-//         // If a password is being updated, it will be hashed by your User model's pre-save middleware
+//         // Password hashing is handled by the pre-save hook in models/User.js
 //         if (req.body.password) {
 //             user.password = req.body.password;
 //         }
@@ -126,6 +146,7 @@ module.exports = {
 //             branch: updatedUser.branch,
 //             semester: updatedUser.semester,
 //             phone: updatedUser.phone,
+//             // ALREADY INCLUDED: This ensures admin status persists after update
 //             role: updatedUser.role,
 //         });
 //     } else {
@@ -134,8 +155,8 @@ module.exports = {
 //     }
 // });
 
-// // IMPORTANT: You must export both functions
 // module.exports = { 
 //     getUserProfile, 
 //     updateUserProfile 
 // };
+
