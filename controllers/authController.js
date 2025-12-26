@@ -95,7 +95,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
         user.otpRequestCount = 0;
     }
 
-    if (user.otpRequestCount >= 2) {
+    if (user.otpRequestCount >= 15) {
         res.status(429);
         throw new Error('Daily OTP limit reached. Try again in 24 hours.');
     }
