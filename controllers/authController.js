@@ -3,34 +3,87 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
+// 1. JWT Token Generator
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
+// 2. Email Transporter Setup
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL_USER, // e.g., kiitquest@gmail.com
+        pass: process.env.EMAIL_PASS  // 16-digit App Password
     }
 });
 
-// @desc    Request Password Reset OTP
-// @route   POST /api/auth/forgot-password
-const forgotPassword = asyncHandler(async (req, res) => {
-    const { email } = req.body;
-    
-    // 1. Uniform Response to prevent Email Enumeration
-    const genericResponse = { message: 'If an account exists with that email, an OTP has been sent.' };
-    
-    if (!email) {
+// 3. Register User
+const registerUser = asyncHandler(async (req, res) => {
+    const { name, email, password, school, branch, semester, phone } = req.body;
+
+    if (!name || !email || !password) {
         res.status(400);
-        throw new Error('Please provide an email');
+        throw new Error('Please add all fields');
     }
 
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        res.status(400);
+        throw new Error('User already exists');
+    }
+
+    const user = await User.create({
+        name, email, password, school, branch, semester, phone
+    });
+
+    if (user) {
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            school: user.school,
+            branch: user.branch,
+            semester: user.semester,
+            phone: user.phone,
+            role: user.role,
+            token: generateToken(user._id),
+        });
+    } else {
+        res.status(400);
+        throw new Error('Invalid user data');
+    }
+});
+
+// 4. Login User
+const loginUser = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    // If user doesn't exist, we still return 200 to confuse attackers
+    if (user && (await user.matchPassword(password))) {
+        res.json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            school: user.school,
+            branch: user.branch,
+            semester: user.semester,
+            phone: user.phone,
+            role: user.role,
+            token: generateToken(user._id),
+        });
+    } else {
+        res.status(401);
+        throw new Error('Invalid email or password');
+    }
+});
+
+// 5. Request Password Reset OTP
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    const genericResponse = { message: 'If an account exists with that email, an OTP has been sent.' };
+
     if (!user) {
         return res.status(200).json(genericResponse);
     }
@@ -55,7 +108,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     user.lastOtpRequest = now;
     await user.save();
 
-    const mailOptions = {
+    await transporter.sendMail({
         from: `"KIIT Quest" <${process.env.EMAIL_USER}>`,
         to: user.email,
         subject: 'Password Reset OTP - KIIT Quest',
@@ -67,19 +120,12 @@ const forgotPassword = asyncHandler(async (req, res) => {
                 <p>This code will expire in 10 minutes.</p>
             </div>
         `
-    };
+    });
 
-    try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json(genericResponse);
-    } catch (error) {
-        res.status(500);
-        throw new Error('Email delivery failed. Please try again later.');
-    }
+    res.status(200).json(genericResponse);
 });
 
-// @desc    Verify OTP and Reset Password
-// @route   POST /api/auth/reset-password
+// 6. Verify OTP and Reset Password
 const resetPassword = asyncHandler(async (req, res) => {
     const { email, otp, newPassword } = req.body;
 
@@ -88,7 +134,6 @@ const resetPassword = asyncHandler(async (req, res) => {
         throw new Error('Please provide all fields');
     }
 
-    // Minimum password length check
     if (newPassword.length < 6) {
         res.status(400);
         throw new Error('Password must be at least 6 characters long');
@@ -106,15 +151,21 @@ const resetPassword = asyncHandler(async (req, res) => {
     }
 
     user.password = newPassword; 
-    user.resetPasswordOTP = undefined; // Clear OTP after success
+    user.resetPasswordOTP = undefined;
     user.resetPasswordExpires = undefined;
     
     await user.save();
 
-    res.status(200).json({ message: 'Password reset successful. You can now login.' });
+    res.status(200).json({ message: 'Password reset successful.' });
 });
 
-module.exports = { registerUser, loginUser, forgotPassword, resetPassword };
+// CRITICAL: All 4 functions must be exported here
+module.exports = { 
+    registerUser, 
+    loginUser, 
+    forgotPassword, 
+    resetPassword 
+};
 
 
 // const asyncHandler = require('express-async-handler');
