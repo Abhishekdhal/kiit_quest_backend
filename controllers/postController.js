@@ -1,5 +1,5 @@
 const Post = require('../models/Post');
-
+//completed this file
 // 1. Fetch all posts (Sorted by newest first)
 exports.getAllPosts = async (req, res) => {
   try {

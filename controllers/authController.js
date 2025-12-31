@@ -2,7 +2,7 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-
+//completed this file
 // 1. JWT Token Generator - Set to 30d for long-lived login
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });

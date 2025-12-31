@@ -4,7 +4,7 @@ const StudyMaterial = require('../models/StudyMaterial');
 const escapeRegex = (string) => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
-
+//completed this file
 // @desc    Get subjects that have study materials available
 // @route   GET /api/study-material/subjects
 const getMaterialSubjects = asyncHandler(async (req, res) => {
