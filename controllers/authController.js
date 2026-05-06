@@ -23,6 +23,12 @@ const registerUser = asyncHandler(async (req, res) => {
     const { name, password, school, branch, semester, phone } = req.body;
     const email = req.body.email.toLowerCase().trim();
 
+    if (!email.endsWith('@kiit.ac.in')) {
+        return res.status(400).json({ 
+            message: "Registration restricted to @kiit.ac.in emails only." 
+        });
+    }
+
     if (!name || !email || !password) {
         res.status(400);
         throw new Error('Please add all required fields');
@@ -56,6 +62,12 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
     const { password } = req.body;
     const email = req.body.email.toLowerCase().trim();
+
+    if (!email.endsWith('@kiit.ac.in')) {
+        return res.status(400).json({ 
+            message: "Login restricted to @kiit.ac.in emails only." 
+        });
+    }
 
     const user = await User.findOne({ email });
 
