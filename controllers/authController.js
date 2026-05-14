@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const admin = require('firebase-admin');
 //completed this file
 // 1. JWT Token Generator - Set to 30d for long-lived login
 const generateToken = (id) => {
@@ -175,11 +176,118 @@ const resetPassword = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Password reset successful. You can now log in.' });
 });
 
+// @desc    Check if user exists by email
+// @route   GET /api/auth/check-user
+const checkUserExists = asyncHandler(async (req, res) => {
+    const email = req.query.email?.toLowerCase().trim();
+    if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+    }
+    const user = await User.findOne({ email });
+    res.json({ exists: !!user });
+});
+
+// @desc    Login with Google (Verifies ID Token)
+// @route   POST /api/auth/google-login
+const googleLogin = asyncHandler(async (req, res) => {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+        res.status(400);
+        throw new Error('ID Token is required');
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const email = decodedToken.email.toLowerCase().trim();
+
+        if (!email.endsWith('@kiit.ac.in')) {
+            return res.status(400).json({ message: 'Only @kiit.ac.in emails allowed' });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (user) {
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                school: user.school,
+                branch: user.branch,
+                semester: user.semester,
+                token: generateToken(user._id),
+            });
+        } else {
+            res.status(404).json({ message: 'User not found. Please register first.' });
+        }
+    } catch (error) {
+        res.status(401);
+        throw new Error('Invalid Google ID Token');
+    }
+});
+
+// @desc    Quick Signup with Google
+// @route   POST /api/auth/google-signup
+const googleSignup = asyncHandler(async (req, res) => {
+    const { idToken, name, email } = req.body;
+
+    if (!idToken) {
+        res.status(400);
+        throw new Error('ID Token is required');
+    }
+
+    try {
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const tokenEmail = decodedToken.email.toLowerCase().trim();
+
+        if (tokenEmail !== email.toLowerCase().trim()) {
+            res.status(400);
+            throw new Error('Email mismatch');
+        }
+
+        if (!tokenEmail.endsWith('@kiit.ac.in')) {
+            return res.status(400).json({ message: 'Only @kiit.ac.in emails allowed' });
+        }
+
+        let user = await User.findOne({ email: tokenEmail });
+
+        if (!user) {
+            user = await User.create({
+                name: name || decodedToken.name || 'User',
+                email: tokenEmail,
+                password: Math.random().toString(36).slice(-10), // Random password for social login
+                school: 'N/A',
+                branch: 'N/A',
+                semester: 'N/A',
+                phone: '0000000000'
+            });
+        }
+
+        res.status(201).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            school: user.school,
+            branch: user.branch,
+            semester: user.semester,
+            token: generateToken(user._id),
+        });
+    } catch (error) {
+        res.status(401);
+        throw new Error('Invalid Google ID Token or registration failed');
+    }
+});
+
 module.exports = { 
     registerUser, 
     loginUser, 
     forgotPassword, 
-    resetPassword 
+    resetPassword,
+    checkUserExists,
+    googleLogin,
+    googleSignup
 };
 
 

@@ -5,7 +5,10 @@ const {
     registerUser, 
     loginUser, 
     forgotPassword, 
-    resetPassword 
+    resetPassword,
+    checkUserExists,
+    googleLogin,
+    googleSignup
 } = require('../controllers/authController');
 
 const router = express.Router();
@@ -80,6 +83,15 @@ router.post(
     validate,
     resetPassword
 );
+
+// @desc    Check if user exists
+router.get('/check-user', checkUserExists);
+
+// @desc    Login with Google
+router.post('/google-login', googleLogin);
+
+// @desc    Signup with Google
+router.post('/google-signup', googleSignup);
 
 module.exports = router;
 
