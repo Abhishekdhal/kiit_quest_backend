@@ -19,14 +19,19 @@ const getSubjects = asyncHandler(async (req, res) => {
         throw new Error('Please provide school, branch, and semester');
     }
 
+    const matchFilter = {
+        schoolName: { $regex: new RegExp(`^${escapeRegex(school.trim())}$`, 'i') },
+        branchName: { $regex: new RegExp(`^${escapeRegex(branch.trim())}$`, 'i') },
+        semester: semester.toString().trim(),
+    };
+
+    if (req.query.type) {
+        matchFilter.type = req.query.type.toString().trim();
+    }
+
     const subjects = await PYQ.aggregate([
         {
-            $match: {
-                // Matches school and branch case-insensitively.
-                schoolName: { $regex: new RegExp(`^${escapeRegex(school.trim())}$`, 'i') },
-                branchName: { $regex: new RegExp(`^${escapeRegex(branch.trim())}$`, 'i') },
-                semester: semester.toString().trim(), 
-            },
+            $match: matchFilter,
         },
         {
             $group: {

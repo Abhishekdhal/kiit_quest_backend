@@ -9,7 +9,7 @@ const client = new OAuth2Client('1044009284481-kosamf1krs08o2hs82kab2c5lglfd7a6.
 //completed this file
 // 1. JWT Token Generator - Set to 30d for long-lived login
 const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '365d' });
 };
 
 // 2. Email Transporter Setup

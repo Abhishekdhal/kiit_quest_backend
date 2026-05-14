@@ -1,6 +1,7 @@
 const express = require('express');
 const connectDB = require('./config/db');
 const cors = require('cors');
+const compression = require('compression');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
@@ -34,6 +35,7 @@ if (!admin.apps.length) {
 connectDB();
 
 const app = express();
+app.use(compression());
 app.set('trust proxy', 1);
 
 // Middleware
