@@ -3,6 +3,9 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const admin = require('firebase-admin');
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client('1044009284481-kosamf1krs08o2hs82kab2c5lglfd7a6.apps.googleusercontent.com');
+
 //completed this file
 // 1. JWT Token Generator - Set to 30d for long-lived login
 const generateToken = (id) => {
@@ -198,8 +201,12 @@ const googleLogin = asyncHandler(async (req, res) => {
     }
 
     try {
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const email = decodedToken.email.toLowerCase().trim();
+        const ticket = await client.verifyIdToken({
+            idToken: idToken,
+            audience: '1044009284481-kosamf1krs08o2hs82kab2c5lglfd7a6.apps.googleusercontent.com',
+        });
+        const payload = ticket.getPayload();
+        const email = payload.email.toLowerCase().trim();
 
         if (!email.endsWith('@kiit.ac.in')) {
             return res.status(400).json({ message: 'Only @kiit.ac.in emails allowed' });
@@ -237,8 +244,12 @@ const googleSignup = asyncHandler(async (req, res) => {
     }
 
     try {
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const tokenEmail = decodedToken.email.toLowerCase().trim();
+        const ticket = await client.verifyIdToken({
+            idToken: idToken,
+            audience: '1044009284481-kosamf1krs08o2hs82kab2c5lglfd7a6.apps.googleusercontent.com',
+        });
+        const payload = ticket.getPayload();
+        const tokenEmail = payload.email.toLowerCase().trim();
 
         if (tokenEmail !== email.toLowerCase().trim()) {
             res.status(400);
@@ -253,7 +264,7 @@ const googleSignup = asyncHandler(async (req, res) => {
 
         if (!user) {
             user = await User.create({
-                name: name || decodedToken.name || 'User',
+                name: name || payload.name || 'User',
                 email: tokenEmail,
                 password: Math.random().toString(36).slice(-10), // Random password for social login
                 school: 'N/A',
