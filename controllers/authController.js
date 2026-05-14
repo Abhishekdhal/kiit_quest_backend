@@ -222,8 +222,7 @@ const googleLogin = asyncHandler(async (req, res) => {
             res.status(404).json({ message: 'User not found. Please register first.' });
         }
     } catch (error) {
-        res.status(401);
-        throw new Error('Invalid Google ID Token');
+        res.status(401).json({ message: 'Firebase verification failed: ' + error.message });
     }
 });
 
@@ -275,8 +274,7 @@ const googleSignup = asyncHandler(async (req, res) => {
             token: generateToken(user._id),
         });
     } catch (error) {
-        res.status(401);
-        throw new Error('Invalid Google ID Token or registration failed');
+        res.status(401).json({ message: 'Firebase verification failed: ' + error.message });
     }
 });
 
