@@ -53,6 +53,7 @@ app.use('/api/user', require('./routes/userRoutes'));
 app.use('/api/pdf', require('./routes/pdfRoutes'));
 app.use('/api/posts', require('./routes/postRoutes')); 
 app.use('/api/study-material', require('./routes/studyMaterialRoutes'));
+app.use('/api/quest', require('./routes/questRoutes'));
 
 // Basic health check
 app.get('/', (req, res) => {
