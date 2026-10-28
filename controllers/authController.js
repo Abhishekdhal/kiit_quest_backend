@@ -9,7 +9,7 @@ const client = new OAuth2Client('1044009284481-kosamf1krs08o2hs82kab2c5lglfd7a6.
 //completed this file
 // 1. JWT Token Generator - Set to 30d for long-lived login
 const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '365d' });
+    return jwt.sign({ id }, process.env.JWT_SECRET || 'kiit_quest_jwt_default_secret_key_2026', { expiresIn: '365d' });
 };
 
 // 2. Email Transporter Setup
@@ -65,11 +65,15 @@ const registerUser = asyncHandler(async (req, res) => {
 // 4. Login User
 const loginUser = asyncHandler(async (req, res) => {
     const { password } = req.body;
-    const email = req.body.email.toLowerCase().trim();
+    let email = req.body.email.toLowerCase().trim();
 
-    if (!email.endsWith('@kiit.ac.in')) {
+    if (!email.includes('@')) {
+        email = `${email}@kiit.ac.in`;
+    }
+
+    if (!email.endsWith('@kiit.ac.in') && !email.endsWith('@gmail.com')) {
         return res.status(400).json({ 
-            message: "Login restricted to @kiit.ac.in emails only." 
+            message: "Login restricted to @kiit.ac.in or authorized emails." 
         });
     }
 
