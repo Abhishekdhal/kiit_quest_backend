@@ -1,11 +1,14 @@
 const mongoose = require('mongoose');
 
 const questQuestionSchema = new mongoose.Schema({
+  id: { type: String },
+  question_id: { type: String },
   question: { type: String, required: true },
   options: [{ type: String, required: true }],
-  correctAnswer: { type: String, required: true },
-  explanation: { type: String, default: '' }
-});
+  correctAnswer: { type: String, default: '' },
+  explanation: { type: String, default: '' },
+  attempt_id: { type: String, default: null }
+}, { strict: false });
 
 const roomSchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true },
@@ -18,9 +21,14 @@ const roomSchema = new mongoose.Schema({
     id: { type: String, required: true },
     name: { type: String, required: true },
     score: { type: Number, default: 0 },
-    isReady: { type: Boolean, default: false }
+    isReady: { type: Boolean, default: false },
+    hasSubmitted: { type: Boolean, default: false }
   }],
-  status: { type: String, enum: ['waiting', 'active', 'finished'], default: 'waiting' },
+  topic: { type: String, default: 'Whole Subject' },
+  timeLimit: { type: Number, default: 10 },
+  questionCount: { type: Number, default: 10 },
+  status: { type: String, enum: ['waiting', 'active', 'in_progress', 'finished'], default: 'waiting' },
+  attempt_id: { type: String, default: null },
   questions: [questQuestionSchema],
   createdAt: { type: Date, default: Date.now, expires: 3600 } // Auto-delete room after 1 hour
 });

@@ -10,10 +10,15 @@ const connectDB = async () => {
         return;
     }
 
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/kiit_quest';
+    if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+        console.warn('⚠️ MONGO_URI not set; attempting default local MongoDB connection.');
+    }
+
     try {
-        const conn = await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-            socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+        const conn = await mongoose.connect(mongoUri, {
+            serverSelectionTimeoutMS: 15000,
+            socketTimeoutMS: 45000,
         });
         
         isConnected = conn.connections[0].readyState === 1;

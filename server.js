@@ -25,9 +25,9 @@ if (!admin.apps.length) {
         privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       }),
     });
-    console.log('🔥 Firebase Admin SDK Initialized Successfully');
+    console.log('Firebase Admin SDK Initialized Successfully');
   } catch (error) {
-    console.error('❌ Firebase Initialization Error:', error.message);
+    console.error('Firebase Initialization Error:', error.message);
   }
 }
 
@@ -41,8 +41,8 @@ app.set('trust proxy', 1);
 // so that preflight (OPTIONS) requests are handled correctly
 app.use(cors({
   origin: '*', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'], 
+  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'X-Internal-Service-Key', 'X-Student-Id', 'X-Student-Email', 'X-Student-Name', '*']
 }));
 
 app.use(compression());
@@ -55,7 +55,7 @@ app.use('/api/user', require('./routes/userRoutes'));
 app.use('/api/pdf', require('./routes/pdfRoutes'));
 app.use('/api/posts', require('./routes/postRoutes')); 
 app.use('/api/study-material', require('./routes/studyMaterialRoutes'));
-app.use('/api/quest', require('./routes/questRoutes'));
+app.use(['/api/quest', '/api/quests'], require('./routes/questRoutes'));
 
 // Basic health check
 app.get('/', (req, res) => {
@@ -65,6 +65,14 @@ app.get('/', (req, res) => {
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found', path: req.url });
+});
+
+// Centralized JSON Error Handler
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
+  res.status(statusCode).json({
+    message: err.message || 'Server error',
+  });
 });
 
 const PORT = process.env.PORT || 5000;

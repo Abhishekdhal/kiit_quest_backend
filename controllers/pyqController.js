@@ -48,6 +48,27 @@ const getSubjects = asyncHandler(async (req, res) => {
         },
     ]);
 
+    // Ensure all 5 KIIT Question Factory assessment subjects are available for Semester 5
+    const semClean = semester.toString().trim();
+    if (semClean === '5' || semClean.toLowerCase().includes('5')) {
+        const canonical = [
+            { id: 'cs30001', name: 'Design and Analysis of Algorithms' },
+            { id: 'cs-30003', name: 'Computer Networks' },
+            { id: 'cs30013', name: 'Data Mining and Data Warehousing' },
+            { id: 'cs-31001', name: 'Software Engineering' },
+            { id: 'hs30101', name: 'Engineering Economics' },
+        ];
+        for (const item of canonical) {
+            const exists = subjects.some(s => 
+                s.name.toLowerCase().trim() === item.name.toLowerCase().trim() ||
+                s.id.toLowerCase().trim() === item.id.toLowerCase().trim()
+            );
+            if (!exists) {
+                subjects.push(item);
+            }
+        }
+    }
+
     res.json(subjects);
 });
 
